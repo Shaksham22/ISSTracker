@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISS Tracker Doodle</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.0.0/dist/leaflet-gesture-handling.min.css"
+  type="text/css">
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.0.0/satellite.min.js"></script>
+  <style>
+      body {
+          background: url('https://images.newscientist.com/wp-content/uploads/2020/10/06142805/cupola_with_clouds_and_ocean_web.jpg');
+          background-attachment: fixed; 
+          font-family: 'Comic Sans MS', cursive;
+          color: #fff;
+          background-size: 100% 120%; /* Crop horizontally and move down */
+          background-position: center;
+          background-repeat: no-repeat;            
+      }
+
+      #map {
+          height: 530px;
+          width: 90%;
+          border-radius: 10px;
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+          margin: auto; /* Center horizontally */
+          display: flex; /* Use flexbox for vertical centering */
+          align-items: center; /* Center vertically */
+          justify-content: center; /* Center horizontally */
+          margin-bottom: 60px;
+      }
+
+      .footer {
+          text-align: center;
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.7);
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+          width: calc(80% + 40px);
+          margin: auto;
+      }
+
+      .social-icons img {
+          height: 30px;
+          width: 30px;
+          margin: 0 10px;
+          filter: invert(1);
+      }
+      .image-text {
+          font-family: 'Julies_handwriting';
+          padding-top: 20px;
+          padding-bottom: 20px;
+          text-align: center;
+          text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+          color: transparent; /* Hide text content */
+          font-size: 7vw; /* Set font size as needed */
+          text-align: center; /* Center the text */
+          line-height: 1; /* Adjust line height as needed */
+          background-image: url('https://i.guim.co.uk/img/media/8e728d2f522ad74a73806fb87326822762603eb8/208_0_5625_3375/master/5625.jpg?width=1200&quality=85&auto=format&fit=max&s=670c3290b724479cc2c00361ab401041'); /* Image URL */
+          background-clip: text;
+          -webkit-background-clip: text; /* For older versions of Safari */
+          background-size: contain;
+          filter: brightness(1.5); 
+          
+      }
+
+          @font-face {
+          font-family: 'Julies_handwriting';
+          src: url('https://static1.squarespace.com/static/5c58ec3e797f74738f72df9a/t/65763f132559f345ade184ca/1702248211938/Julies_handwriting_2-Regular.eot');
+          src: url('https://www.julieokahara.com/s/Julies_handwriting_2-Regular.eot#iefix') format('embedded-opentype'),
+              url('https://static1.squarespace.com/static/5c58ec3e797f74738f72df9a/t/65763f5a1c0ad97dc9551a08/1702248282223/Julies_handwriting_2-Regular.woff2') format('woff2'),
+              url('https://static1.squarespace.com/static/5c58ec3e797f74738f72df9a/t/65763f93c5ce6c20f87fac17/1702248339181/Julies_handwriting_2-Regular.woff') format('woff'),
+              url('https://static1.squarespace.com/static/5c58ec3e797f74738f72df9a/t/65763fcc21682946c4d6beab/1702248396748/Julies_handwriting_2-Regular.ttf') format('truetype');
+          font-weight: normal;
+          font-style: normal;
+          }
+          
+
+      .test {
+          margin: 0;
+          background-color: rgba(255, 255, 255, 0.85);
+          display: block;
+          width: 60%;
+          margin: auto;
+}
+
+          
+  </style>
+</head>
+<body>
+    <div class="test">
+        <div class="image-text" style="border-color:white;">Where is the ISS?</div>
+        <div id="map"></div>
+        <div class="footer">
+          <p>About me: My name is Shaksham. I'm from Thunder Bay, Canada, floating my way through life. Currently, I'm studying Computer Science at Lakehead University in Thunder Bay, Canada.</p>
+          <p>Connect with me:
+              <span class="social-icons">
+                  <a href="https://www.linkedin.com/in/shakshamshubham/" target="_blank"><img src="https://i.ibb.co/52HfkV5/LI-In-Bug.png" alt="LinkedIn Logo"></a>
+                  <a href="https://github.com/Shaksham22" target="_blank"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo"></a>
+                  <a href="https://twitter.com/shaksham22" target="_blank"><img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png" alt="Twitter Logo"></a>
+              </span>
+          </p>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+        integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+        crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-gesture-handling@1.0.0/dist/leaflet-gesture-handling.min.js"></script>
+    <script>
+        var map = L.map('map', {
+            gestureHandling: true
+        }).setView([0, 0], 4);
+
+        L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '© Google contributors'
+        }).addTo(map);
+
+        var customIcon = L.icon({
+            iconUrl: 'https://www.iconarchive.com/download/i106861/goodstuff-no-nonsense/free-space/international-space-station.1024.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -32]
+        });
+
+        var marker = L.marker([0, 0], { icon: customIcon }).addTo(map);
+        var polyline = L.polyline([], { color: '#ff3333' }).addTo(map);
+        var issPositionsnow = [];
+        var issPositions = [];
+        var coordinates = [];
+        var differential = 0.05;
+        var currentIndex = 0;
+        var api_url = "https://tle.ivanstanojevic.me/api/tle/25544";
+        var intervalId;  // Variable to store the interval ID
+
+        function updateISSPosition() {
+            if (currentIndex < coordinates.length) {
+                var [issLatitude, issLongitude] = coordinates[currentIndex];
+
+                marker.setLatLng([issLatitude, issLongitude]);
+                marker.bindPopup(`ISS flying around at: Lat ${issLatitude}, Long ${issLongitude}`).openPopup();
+                issPositions.push([issLatitude, issLongitude]);
+                polyline.setLatLngs(issPositions);
+                map.setView([issLatitude, issLongitude], map.getZoom());
+
+                currentIndex++;
+            } else {
+                clearInterval(intervalId);
+            }
+        }
+
+        async function getTLEData(api_url) {
+            try {
+                const response = await fetch(api_url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const tleLine1 = String(data["line1"]);
+                const tleLine2 = String(data["line2"]);
+
+                return { tleLine1, tleLine2 };
+            } catch (error) {
+                console.error('Error fetching TLE data:', error);
+                throw error;
+            }
+        }
+
+        function calculateCoordinates(tleLine1, tleLine2, differential) {
+            const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
+            const coordinates1 = [];
+            let lonLast = null;
+            let currentTime = new Date();
+            console.log(currentTime)
+
+            while (true) {
+                const positionAndVelocity = satellite.propagate(satrec, currentTime);
+                const gmst = satellite.gstime(currentTime);
+                const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
+
+                const lat = satellite.degreesLat(positionGd.latitude);
+                const lon = satellite.degreesLong(positionGd.longitude);
+
+                if (lonLast !== null && lonLast > 0 && lon < 0) {
+                    break;
+                }
+
+                coordinates1.push([lat, lon]);
+
+                const newTime = new Date(currentTime.getTime() + differential * 60 * 1000);
+                currentTime = newTime;
+                lonLast = lon;
+            }
+
+            return coordinates1;
+        }
+
+        getTLEData(api_url)
+            .then(({ tleLine1, tleLine2 }) => {
+                coordinates = calculateCoordinates(tleLine1, tleLine2, differential);
+                console.log("Coordinates Moving Eastward:", coordinates);
+                initial();
+            })
+            .catch(error => {
+                // Handle errors
+            });
+
+        function initial() {
+          console.log("here1");
+            if (coordinates.length > 0) {
+                var [initialLat, initialLon] = coordinates[0];
+                marker.setLatLng([initialLat, initialLon]);
+                marker.bindPopup(`ISS flying around at: Lat ${initialLat}, Long ${initialLon}`).openPopup();
+                map.setView([initialLat, initialLon], map.getZoom());
+            }
+            console.log("here2");
+            intervalId = setInterval(updateISSPosition, differential *60 *1000);
+            console.log("here3");
+        }
+
+        
+
+    </script>
+</body>
+</html>
